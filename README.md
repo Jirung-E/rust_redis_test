@@ -45,5 +45,57 @@ LASTSAVE
 - RDB/AOF
     > RDB: 주기적으로 스냅샷을 저장하는 방식. 다음 저장 시점 이전(또는 저장 도중)에 장애가 발생하면 데이터 손실이 있을 수 있음.  
     > AOF: 모든 쓰기 명령을 로그로 기록하는 방식. 용량이 크지만 데이터 손실이 거의 없음.  
+    > redis.conf 파일에서 설정 가능
 
 - 게임이 종료될때마다 결과를 저장해야하는데 그때마다 전체 DB를 저장하는것은 비효율적이므로 RDB/AOF를 적절히 섞어서 사용
+
+
+
+- - -
+
+
+
+모든 플레이어 데이터를 메모리에 로드해두는건 비효율적이므로 접속중인 플레이어 정보만 로드하는게 좋지만, 그런 기능은 없는것같다.  
+(그렇게 하려면 파일(또는 관계형 데이터베이스 등)로 따로 저장한 다음 서버 시작시 redis 초기화 후 필요한 정보만 로드해야함)  
+
+지금은 용량이 크지 않아서 큰 문제는 없을것같다.  
+(100판 플레이한 플레이어의 데이터 크기를 대략 4KB로 가정하면 플레이어 1000명의 데이터 크기는 약 4MB)
+
+
+```rs
+struct UserInfo {
+    id: u32,
+    name: String,
+    tier: u32,
+    match_results: Vec<MatchResult>,
+}
+
+struct MatchResult {
+    kills: u32,
+    deaths: u32,
+    damage_done: u32,
+    win: bool,
+}
+```
+
+```json
+{
+    "id": 1,
+    "name": "Player1",
+    "tier": 2,
+    "match_results": [
+        {
+            "kills": 10,
+            "deaths": 2,
+            "damage_done": 3000,
+            "win": true
+        },
+        {
+            "kills": 5,
+            "deaths": 3,
+            "damage_done": 1500,
+            "win": false
+        }
+    ]
+}
+```
